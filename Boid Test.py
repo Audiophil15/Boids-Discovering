@@ -1,7 +1,9 @@
-import pyglet
-from pyglet import shapes
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
 from random import randint
 from math import *
+import pygame
 
 from time import sleep
 
@@ -12,7 +14,6 @@ class vect :
 	def __add__(self, v) :
 		if (l:=len(v)) == len(self) :
 			return vect([self.coords[0]+v[0], self.coords[1]+v[1]])
-			# return vect([ux+vx for ux, vx in zip(self.coords, v)])
 
 	def __iadd__(self, v):
 		if (l:=len(v)) == len(self) :
@@ -26,9 +27,7 @@ class vect :
 	def __mul__(self, v) :
 		if type(v) == type(self) :
 			d = 0
-			d = u[0]*v[0]+u[1]*v[1]
-			# for ux, vx in zip(self.coords, v) :
-			# 	d += ux*vx
+			d = self.coords[0]*v[0]+self.coords[1]*v[1]
 			return d
 		return vect([ux*v for ux in self.coords])
 
@@ -46,7 +45,6 @@ class vect :
 
 	def __sub__(self, v) :
 		return vect([self.coords[0]-v[0], self.coords[1]-v[1]])
-		# return vect([ux-vx for ux, vx in zip(self.coords, v)])
 
 	def __str__(self) :
 		return str(self.coords)
@@ -54,7 +52,6 @@ class vect :
 	def normalize(self) :
 		n = norm(self.coords)
 		self.coords = vect([self.coords[0]/n, self.coords[1]/n])
-		# self.coords = vect([x/n for x in self.coords])
 		return self
 
 
@@ -103,9 +100,7 @@ class boid :
 		# print(vel)
 		# self.velocity += vel
 		# self.velocity = self.velocity/norm(self.velocity)
-		# if boid.boidslist[0] is self :
 		self.velocity += (self.getSubMassCenter()-self.position).normalize()
-			# print(self.position, self.getSubMassCenter(), self.velocity)
 
 
 		for c in [0, 1] :
@@ -139,41 +134,42 @@ class boid :
 	def getSubMassCenter(self) :
 		return vect(boid.masscenter*boid.nextid-self.position)/(boid.nextid-1)
 
-	def draw(self) :
-		shapes.Circle(*(self.position), 3, color=self.color).draw()
-
-
+	def draw(self, window) :
+		pygame.draw.circle(window, pygame.Color(*(self.color)), self.position, 3)
 
 if __name__ == "__main__" :
 
-	# v = vect([4,5,6])
-	# v += (v-vect([1,2,3])).normalize()
-	# print(type(v))
-	# v += (v-vect([1,2,3]))
-	# v += (v-vect([1,2,3])).normalize()
-	# print(v)
-
-	u = [1,0]
-	nbboids = 125
-	for i in range(0,nbboids) :
-		boid([rand()%1000, rand()%1000], [float(rand()%2),float(rand()%2)], color=(0,int(i/nbboids*200),255-int(i/nbboids*255),255))
-
 	winsize = [1000, 1000]
+	nbboids = 1000
 
-	# print(boid.boidslist)
-	# boid.updateGroupMassCenter()
-	# print(boid.masscenter)
+	for i in range(0,nbboids) :
+		boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(0,200,int(i/nbboids*200),255)) #-int(i/nbboids*255)
 
+	pygame.init()
+	win = pygame.display.set_mode(winsize)
+	clock = pygame.time.Clock()
+	running = True
+	dt = 0
 
-	window = pyglet.window.Window(*winsize, "Test")
-	@window.event
-	def on_draw() :
-		window.clear()
+	# sleep(1)
+
+	while running:
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT or pygame.key.get_pressed()[pygame.K_ESCAPE]:
+				running = False
+
+		win.fill("black")
+
 		boid.updateGroupMassCenter()
-		shapes.Circle(*(boid.masscenter), 3, color=(0,255,120,255)).draw()
+		pygame.draw.circle(win, pygame.Color(255,255,0), boid.masscenter, 3)
+		boid.masscenter
 		for b in boid.boidslist :
-			b.draw()
 			b.updateVelocity()
+			b.draw(win)
 
-	pyglet.app.run()
+		pygame.display.flip()
+
+		dt = clock.tick(60) / 1000
+
+	pygame.quit()
 
