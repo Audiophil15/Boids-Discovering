@@ -11,7 +11,8 @@ class vect :
 
 	def __add__(self, v) :
 		if (l:=len(v)) == len(self) :
-			return vect([ux+vx for ux, vx in zip(self.coords, v)])
+			return vect([self.coords[0]+v[0], self.coords[1]+v[1]])
+			# return vect([ux+vx for ux, vx in zip(self.coords, v)])
 
 	def __iadd__(self, v):
 		if (l:=len(v)) == len(self) :
@@ -25,8 +26,9 @@ class vect :
 	def __mul__(self, v) :
 		if type(v) == type(self) :
 			d = 0
-			for ux, vx in zip(self.coords, v) :
-				d += ux*vx
+			d = u[0]*v[0]+u[1]*v[1]
+			# for ux, vx in zip(self.coords, v) :
+			# 	d += ux*vx
 			return d
 		return vect([ux*v for ux in self.coords])
 
@@ -43,14 +45,16 @@ class vect :
 		self.coords.append(item)
 
 	def __sub__(self, v) :
-		return vect([ux-vx for ux, vx in zip(self.coords, v)])
+		return vect([self.coords[0]-v[0], self.coords[1]-v[1]])
+		# return vect([ux-vx for ux, vx in zip(self.coords, v)])
 
 	def __str__(self) :
 		return str(self.coords)
 
 	def normalize(self) :
 		n = norm(self.coords)
-		self.coords = vect([x/n for x in self.coords])
+		self.coords = vect([self.coords[0]/n, self.coords[1]/n])
+		# self.coords = vect([x/n for x in self.coords])
 		return self
 
 
@@ -65,7 +69,6 @@ def mean(l) :
 	for e in l :
 		s+= e
 	return e/len(l)
-
 
 def angle(u, v) :
 	return acos((u*v)/(norm(u)*norm(v)))
@@ -153,13 +156,14 @@ if __name__ == "__main__" :
 	u = [1,0]
 	nbboids = 125
 	for i in range(0,nbboids) :
-		boid([rand()%1000, rand()%1000], [float(rand()%2),float(rand()%2)], color=(int(i/nbboids*255),0,255-int(i/nbboids*255),255))
+		boid([rand()%1000, rand()%1000], [float(rand()%2),float(rand()%2)], color=(0,int(i/nbboids*200),255-int(i/nbboids*255),255))
 
 	winsize = [1000, 1000]
 
 	# print(boid.boidslist)
 	# boid.updateGroupMassCenter()
 	# print(boid.masscenter)
+
 
 	window = pyglet.window.Window(*winsize, "Test")
 	@window.event
@@ -172,3 +176,4 @@ if __name__ == "__main__" :
 			b.updateVelocity()
 
 	pyglet.app.run()
+
