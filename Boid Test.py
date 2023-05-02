@@ -114,7 +114,7 @@ class boid :
 			v = b.position-self.position
 			nv = norm(v)
 			if nv < self.rflee :
-				vel -= v#.normalize()
+				vel -= v.normalize()
 			elif nv < self.rfollow :
 				vel += b.velocity.normalize()*0.2
 			elif nv < self.rseek :
