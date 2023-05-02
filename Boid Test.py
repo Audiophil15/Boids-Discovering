@@ -5,7 +5,7 @@ from random import randint
 from math import *
 import pygame
 
-from time import sleep
+from time import sleep, time
 
 class vect :
 	def __init__(self, list = []) -> None:
@@ -50,8 +50,8 @@ class vect :
 		return str(self.coords)
 
 	def normalize(self) :
-		n = norm(self.coords)
-		self.coords = vect([self.coords[0]/n, self.coords[1]/n])
+		if (n := norm(self.coords)) :
+			self.coords = vect([self.coords[0]/n, self.coords[1]/n])
 		return self
 
 
@@ -92,15 +92,13 @@ class boid :
 		self.position += self.velocity
 
 	def updateVelocity(self) :
-		# for c in [0, 1] :
-			# if rand()%1000 < 5 :
-			# 	self.velocity[c] += 1
-			# 	self.velocity[c] %= 3
-		# vel = self.reaction(boid.boidslist)
+		# if self == boid.boidslist[0] :
+		vel = self.reaction(boid.boidslist)
 		# print(vel)
-		# self.velocity += vel
-		# self.velocity = self.velocity/norm(self.velocity)
-		self.velocity += (self.getSubMassCenter()-self.position).normalize()
+		self.velocity += (self.getSubMassCenter()-self.position).normalize()*0.1
+		self.velocity += vel#.normalize()
+		# self.velocity.normalize()
+		# self.velocity.normalize()
 
 
 		for c in [0, 1] :
@@ -111,16 +109,16 @@ class boid :
 			self.position[c] += (self.velocity[c])*1
 
 	def reaction(self, boidslist) :
-		vel = [0.,0.]
+		vel = vect([0.,0.])
 		for b in boid.boidslist :
 			v = b.position-self.position
 			nv = norm(v)
-			# if nv < self.rflee :
-			# 	vel -= v
-			# elif nv < self.rfollow :
-			# 	vel += b.velocity
-			# elif nv < self.rseek :
-			# 	vel += v
+			if nv < self.rflee :
+				vel -= v#.normalize()
+			elif nv < self.rfollow :
+				vel += b.velocity.normalize()*0.2
+			elif nv < self.rseek :
+				vel += v.normalize()*0.01
 		if nv:=norm(vel) > 0 :
 			return vel/nv
 		return vel
@@ -135,13 +133,18 @@ class boid :
 		return vect(boid.masscenter*boid.nextid-self.position)/(boid.nextid-1)
 
 	def draw(self, window) :
+		if self == boid.boidslist[0] :
+			pygame.draw.circle(window, pygame.Color(0,255,255,75), self.position, self.rseek)
+			pygame.draw.circle(window, pygame.Color(255,255,0,75), self.position, self.rfollow)
+			pygame.draw.circle(window, pygame.Color(255,0,0,75), self.position, self.rflee)
 		pygame.draw.circle(window, pygame.Color(*(self.color)), self.position, 3)
 
 if __name__ == "__main__" :
 
 	winsize = [1000, 1000]
-	nbboids = 1000
+	nbboids = 125
 
+	boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(255, 0, 255))
 	for i in range(0,nbboids) :
 		boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(0,200,int(i/nbboids*200),255)) #-int(i/nbboids*255)
 
