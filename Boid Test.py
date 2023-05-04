@@ -3,10 +3,13 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 from random import randint
 from math import *
+import numpy as np
+from numpy.linalg import norm
 import pygame
 
 from time import sleep, time
 
+"""
 class vect :
 	def __init__(self, list = []) -> None:
 		self.coords = list
@@ -53,13 +56,13 @@ class vect :
 		if (n := norm(self.coords)) :
 			self.coords = vect([self.coords[0]/n, self.coords[1]/n])
 		return self
+"""
 
-
-def norm(u) :
-	n = 0
-	for c in u :
-		n += c**2
-	return sqrt(n)
+# def norm(u) :
+# 	n = 0
+# 	for c in u :
+# 		n += c**2
+# 	return sqrt(n)
 
 def mean(l) :
 	s = 0
@@ -68,7 +71,15 @@ def mean(l) :
 	return e/len(l)
 
 def angle(u, v) :
-	return acos((u*v)/(norm(u)*norm(v)))
+	if not norm(u) or not norm(v) :
+		return 0
+	c = (np.dot(u,v))/(norm(u)*norm(v))
+	return (c==1)*3.141592+(c!=1)*c
+
+def pseudoangle(u, v) :
+	if not norm(u) or not norm(v) :
+		return 0
+	return np.dot(u, v)/(norm(u)*norm(v))
 
 def rand() :
 	return randint(0,10**10)
@@ -76,12 +87,14 @@ def rand() :
 class boid :
 	boidslist = []
 	nextid = 0
-	masscenter = vect([0,0])
+	masscenter = np.array([0,0])
 	def __init__(self, position =[0.,0.], velocity=[0.,0.], rseek=60, rfollow=40, rflee=20, color=[255,255,255,255]):
 		self.id = boid.nextid
 		boid.nextid += 1
-		self.position = vect(position)
-		self.velocity = vect(velocity)
+		self.position = np.array(position)
+		self.velocity = np.array(velocity)
+		self.nextposition = np.array(self.position)
+		self.nextvelocity = np.array(self.velocity)
 		self.rseek = rseek
 		self.rfollow = rfollow
 		self.rflee = rflee
@@ -91,46 +104,50 @@ class boid :
 	def move(self) :
 		self.position += self.velocity
 
+	def updateVects(self):
+		self.velocity = np.array(self.nextvelocity)
+		self.position = np.array(self.nextposition)
+
 	def updateVelocity(self) :
-		# if self == boid.boidslist[0] :
-		vel = self.reaction(boid.boidslist)
-		# print(vel)
-		self.velocity += (self.getSubMassCenter()-self.position).normalize()*0.1
-		self.velocity += vel#.normalize()
-		# self.velocity.normalize()
-		# self.velocity.normalize()
+		vel = self.reaction()
+		dpos = (self.getSubMassCenter()-self.position)
+		self.nextvelocity += dpos/(((n:=norm(dpos))==0) + n)*0.1
+		self.nextvelocity += vel
+		if (n:=norm(self.nextvelocity)) > 4 :
+			self.nextvelocity = self.nextvelocity/norm(self.nextvelocity)*4
 
 
 		for c in [0, 1] :
 			if self.position[c] > 1000 :
-				self.velocity[c] = -1
+				self.nextvelocity[c] = -1
 			if self.position[c] < 0 :
-				self.velocity[c] = 1
-			self.position[c] += (self.velocity[c])*1
+				self.nextvelocity[c] = 1
+			self.nextposition[c] += (self.nextvelocity[c])*1
 
-	def reaction(self, boidslist) :
-		vel = vect([0.,0.])
+	def reaction(self) :
+		vel = np.array([0.,0.])
 		for b in boid.boidslist :
-			v = b.position-self.position
-			nv = norm(v)
-			if nv < self.rflee :
-				vel -= v.normalize()
-			elif nv < self.rfollow :
-				vel += b.velocity.normalize()*0.2
-			elif nv < self.rseek :
-				vel += v.normalize()*0.01
-		if nv:=norm(vel) > 0 :
-			return vel/nv
+			if b != self : #and pseudoangle(self.velocity, b.velocity) < -0.7 :
+				v = b.position-self.position
+				nv = norm(v)
+				if nv < self.rflee :
+					vel -= v
+				elif nv < self.rfollow :
+					vel += b.velocity#/(norm(b.velocity)==0 + norm(b.velocity))
+				elif nv < self.rseek :
+					vel += v*0.01 #/(nv==0 + nv)
+		if norm(vel) > 0 :
+			return vel/norm(vel)
 		return vel
 
 	def updateGroupMassCenter() :
-		g = vect([0,0])
+		g = np.array([0.,0.])
 		for b in boid.boidslist :
 			g += b.position
 		boid.masscenter = g/len(boid.boidslist)
 
 	def getSubMassCenter(self) :
-		return vect(boid.masscenter*boid.nextid-self.position)/(boid.nextid-1)
+		return np.array(boid.masscenter*boid.nextid-self.position)/(boid.nextid-1)
 
 	def draw(self, window) :
 		if self == boid.boidslist[0] :
@@ -142,11 +159,12 @@ class boid :
 if __name__ == "__main__" :
 
 	winsize = [1000, 1000]
-	nbboids = 125
+	nbboids = 150
 
-	boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(255, 0, 255))
+	# boid([10.,100.], [0.,0.], color=(255, 0, 255))
+	# boid([500.,100.], [0.,0.], color=(255, 0, 255))
 	for i in range(0,nbboids) :
-		boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(0,200,int(i/nbboids*200),255)) #-int(i/nbboids*255)
+		boid([rand()%winsize[0], rand()%winsize[1]], [float(rand()%2),float(rand()%2)], color=(0,200,int(i/nbboids*200),255))
 
 	pygame.init()
 	win = pygame.display.set_mode(winsize)
@@ -168,6 +186,8 @@ if __name__ == "__main__" :
 		boid.masscenter
 		for b in boid.boidslist :
 			b.updateVelocity()
+		for b in boid.boidslist :
+			b.updateVects()
 			b.draw(win)
 
 		pygame.display.flip()
