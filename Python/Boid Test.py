@@ -159,7 +159,7 @@ class boid :
 if __name__ == "__main__" :
 
 	winsize = [1000, 1000]
-	nbboids = 75
+	nbboids = 5000
 
 	# boid([10.,100.], [0.,0.], color=(255, 0, 255))
 	# boid([500.,100.], [0.,0.], color=(255, 0, 255))
