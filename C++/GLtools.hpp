@@ -6,5 +6,4 @@
 void error_callback( int error, const char *msg );
 GLFWwindow * glInit(int width, int heigt, const char * title);
 
-
 #endif // GLTOOLS_HPP

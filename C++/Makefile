@@ -12,3 +12,7 @@ main.o : main.cpp
 
 %.o : %.cpp %.hpp
 	$(CC) $< -c $(CFLAGS)
+
+clean :
+	rm *.o
+	
