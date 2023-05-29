@@ -16,8 +16,12 @@ void Boid::updateGroupMassCenter(){
 
 void Boid::computeNextVelocity(){
 	this->nextvel = glm::vec2(0);
-	this->nextvel += (Boid::groupMassCenter-this->pos);
+	this->nextvel += (this->subjectiveGroupMassCenter()-this->pos);
 	this->nextvel /= this->nextvel.length();
+}
+
+glm::vec2 Boid::subjectiveGroupMassCenter(){
+	return (Boid::groupMassCenter-this->pos)/(float)(Boid::boidsList.size()-1)*(float)Boid::boidsList.size();
 }
 
 void Boid::update(){

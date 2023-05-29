@@ -50,8 +50,8 @@ int main(){
 	int nbBoids = 10;
 
 	for (int i = 0; i < nbBoids; i++){
-		Boid::boidsList.push_back(new Boid(glm::vec2(i/(float)(nbBoids/2)-1, i/(float)(nbBoids/2)*i/(float)(nbBoids/2)-1), glm::vec2(0), glm::vec2(0), 0.01));
-		// Boid::boidsList.push_back(new Boid(glm::vec2(cos(i*2*M_PI/nbBoids+i/2.), sin(i*2*M_PI/nbBoids)), glm::vec2(0), glm::vec2(0), 0.01));
+		// Boid::boidsList.push_back(new Boid(glm::vec2(i/(float)(nbBoids/2)-1, i/(float)(nbBoids/2)*i/(float)(nbBoids/2)-1), glm::vec2(0), glm::vec2(0), 0.01));
+		Boid::boidsList.push_back(new Boid(glm::vec2(cos(i*2*M_PI/nbBoids+i/2.), sin(i*2*M_PI/nbBoids)), glm::vec2(0), glm::vec2(0), 0.01));
 		// Boid::boidsList.push_back(new Boid(glm::vec2(-1+2*(i/5.f), -1+2*(i/5.f)), glm::vec2(0), glm::vec2(0), 0.01));
 		// printf("%f %f\n", Boid::boidsList[i]->getPosition().x, Boid::boidsList[i]->getPosition().y);
 	}
@@ -63,16 +63,6 @@ int main(){
 		glClear( GL_COLOR_BUFFER_BIT );
 
 		glUseProgram(program);
-
-
-		for (Boid* bp : Boid::boidsList) {
-			bp->computeNextVelocity();
-		}
-		for (Boid* bp : Boid::boidsList) {
-			bp->update();
-		}
-		Boid::updateGroupMassCenter();
-		printf("%f %f\n", Boid::groupMassCenter.x, Boid::groupMassCenter.y);
 
 
 		transformation = transformMatrix(Boid::groupMassCenter, 0.02f);
@@ -91,6 +81,16 @@ int main(){
 			glBindVertexArray(0);
 
 		}
+
+		for (Boid* bp : Boid::boidsList) {
+			bp->computeNextVelocity();
+		}
+		for (Boid* bp : Boid::boidsList) {
+			bp->update();
+		}
+		Boid::updateGroupMassCenter();
+		// printf("%f %f\n", Boid::groupMassCenter.x, Boid::groupMassCenter.y);
+
 
 		glfwSwapBuffers(win);
 		glfwPollEvents();

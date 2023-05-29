@@ -29,6 +29,8 @@ public:
 
 	void update();
 
+	glm::vec2 subjectiveGroupMassCenter();
+
 	glm::vec2 getPosition();
 	float getRadius();
 
